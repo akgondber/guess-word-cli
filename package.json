@@ -1,0 +1,103 @@
+{
+	"name": "guess-word-cli",
+	"version": "1.0.0",
+	"description": "CLI game - find out the source word which characters was shuffled and an extra char was added",
+	"repository": "https://github.com/akgondber/regexp-it-cli",
+	"license": "MIT",
+	"author": "Rushan Alyautdinov <akgondber@gmail.com>",
+	"bin": {
+		"guess-word-cli": "dist/cli.js",
+		"gwc": "dist/cli.js",
+		"guess-word": "dist/cli.js",
+		"guessword": "dist/cli.js",
+		"guwo": "dist/cli.js"
+	},
+	"type": "module",
+	"engines": {
+		"node": ">=16"
+	},
+	"scripts": {
+		"build": "babel --out-dir=dist source",
+		"dev": "babel --out-dir=dist --watch source",
+		"test": "prettier --check . && xo && ava",
+		"otest": "ava",
+		"lint": "xo",
+		"go": "node dist/cli.js",
+		"prettify": "prettier . --write",
+		"xofix": "xo --fix",
+		"play": "node dist/cli.js"
+	},
+	"files": [
+		"dist"
+	],
+	"dependencies": {
+		"fast-shuffle": "^6.0.1",
+		"ink": "^4.3.1",
+		"ink-color-pipe": "^3.0.0",
+		"ink-gradient": "^3.0.0",
+		"log-symbols": "^5.1.0",
+		"meow": "^12.1.0",
+		"nanoid": "^4.0.2",
+		"open": "^9.1.0",
+		"ramda": "^0.29.0",
+		"random-item": "^4.0.1",
+		"react": "^18.2.0",
+		"zustand": "^4.4.1"
+	},
+	"devDependencies": {
+		"@babel/cli": "^7.22.10",
+		"@babel/preset-react": "^7.22.5",
+		"ava": "^5.3.0",
+		"eslint-config-xo-react": "^0.27.0",
+		"eslint-plugin-react": "^7.33.2",
+		"eslint-plugin-react-hooks": "^4.6.0",
+		"import-jsx": "^5.0.0",
+		"ink-testing-library": "^3.0.0",
+		"prettier": "^3.0.2",
+		"xo": "^0.56.0"
+	},
+	"ava": {
+		"environmentVariables": {
+			"NODE_NO_WARNINGS": "1"
+		},
+		"nodeArguments": [
+			"--loader=import-jsx"
+		]
+	},
+	"xo": {
+		"extends": "xo-react",
+		"prettier": true,
+		"rules": {
+			"react/prop-types": "off"
+		}
+	},
+	"prettier": {
+		"useTabs": true,
+		"semi": true,
+		"singleQuote": true,
+		"quoteProps": "as-needed",
+		"bracketSpacing": false,
+		"arrowParens": "avoid",
+		"trailingComma": "all"
+	},
+	"babel": {
+		"presets": [
+			"@babel/preset-react"
+		]
+	},
+	"keywords": [
+		"english",
+		"game",
+		"fun",
+		"cli",
+		"active-rest",
+		"activerest",
+		"console",
+		"terminal",
+		"trainigin",
+		"useful",
+		"vocabulary",
+		"guess",
+		"word"
+	]
+}
