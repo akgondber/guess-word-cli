@@ -20,6 +20,8 @@ $ guess-word-cli --help
 
   Examples
     $ guess-word-cli
+    $ guwo
+    $ gwc
 ```
 
 ## Screenshots

@@ -1,8 +1,8 @@
 {
 	"name": "guess-word-cli",
-	"version": "1.0.0",
+	"version": "1.0.1",
 	"description": "CLI game - find out the source word which characters was shuffled and an extra char was added",
-	"repository": "https://github.com/akgondber/regexp-it-cli",
+	"repository": "https://github.com/akgondber/guess-word-cli",
 	"license": "MIT",
 	"author": "Rushan Alyautdinov <akgondber@gmail.com>",
 	"bin": {
