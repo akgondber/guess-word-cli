@@ -54,18 +54,12 @@ const useWordStore = (set, get) => {
 		word: '',
 		usedWords: [],
 		setWord: word => set(R.set(wordProp, word)),
+		setRandomWord: () => set(R.set(wordProp, shuffle(get().wordsSuite))),
 		setWordsSuite: wordsSuite => set(R.set(wordsSuiteProp, wordsSuite)),
 		clearUsedWords: () => set(R.set(usedWordsProp, [])),
 		addToUsedWords: word => set(R.over(usedWordsProp, R.append(word), get())),
 	};
 };
-
-// Const useGameStatusStore = (set, get) => {
-// 	return {
-// 		chars: [],
-// 		addChar: value => set(state => ({chars: R.append(value, state.chars)})),
-// 	};
-// };
 
 const getRemained = (chars, otherChars) => {
 	return diffWithDuplicates(chars, otherChars).join('');
@@ -86,13 +80,15 @@ const useGameStore = (set, get) => {
 			extraChar: '',
 		},
 		prepareRound() {
-			const {wordsSuite, usedWords} = get();
+			const {wordsSuite} = get();
 
-			if (eqLengths(usedWords, wordsSuite)) {
+			if (eqLengths(get().usedWords, wordsSuite)) {
 				get().clearUsedWords();
 			}
 
-			const currentRoundWord = shuffle(R.difference(wordsSuite, usedWords))[0];
+			const currentRoundWord = shuffle(
+				R.difference(wordsSuite, get().usedWords),
+			)[0];
 			const extraChar = getExtraCharForWord(currentRoundWord);
 			const shuffledWord = shuffleWord(`${currentRoundWord}${extraChar}`);
 

@@ -9,16 +9,16 @@ import * as R from 'ramda';
 import useAppStore from './store.js';
 import {isEnglishWord} from './utils.js';
 
-export default function App({wordsSuite = []}) {
+export default function App({wordsSuite}) {
 	const prepareRound = useAppStore(state => state.prepareRound);
 	const round = useAppStore(R.prop('round'));
 	const setDif = useAppStore(R.prop('setDif'));
 	const setPaused = useAppStore(R.prop('setPaused'));
 	const setRunning = useAppStore(R.prop('setRunning'));
-	const setRandomWord = useAppStore(R.prop('setRandomWord'));
 	const currentChar = useAppStore(R.prop('currentChar'));
 	const setCurrentChar = useAppStore(R.prop('setCurrentChar'));
 	const handleAnswer = useAppStore(R.prop('handleAnswer'));
+	const setWordsSuite = useAppStore(R.prop('setWordsSuite'));
 
 	const isRunning = () => round.status === 'RUNNING';
 	const isPaused = () => round.status === 'PAUSED';
@@ -34,8 +34,12 @@ export default function App({wordsSuite = []}) {
 	} = round;
 
 	useEffect(() => {
+		if (R.isNotNil(wordsSuite) && !R.isEmpty(wordsSuite)) {
+			setWordsSuite(wordsSuite);
+		}
+
 		prepareRound();
-	}, [prepareRound]);
+	}, [prepareRound, wordsSuite, setWordsSuite]);
 
 	useInput(async (input, key) => {
 		if (isPaused()) {
@@ -49,7 +53,7 @@ export default function App({wordsSuite = []}) {
 				setPaused();
 				setCurrentChar('');
 			} else if (key.ctrl && input === 'r') {
-				setRandomWord(wordsSuite);
+				prepareRound();
 			} else if (key.ctrl && input === 's') {
 				setDif();
 			} else if (isEnglishWord(input)) {
