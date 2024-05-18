@@ -1,6 +1,6 @@
 {
 	"name": "guess-word-cli",
-	"version": "2.0.0",
+	"version": "2.1.0",
 	"description": "CLI game - find out the source word which characters was shuffled and an extra char was added",
 	"repository": "https://github.com/akgondber/guess-word-cli",
 	"license": "MIT",

@@ -5,7 +5,7 @@ import {shallow} from 'zustand/shallow';
 import {shuffle} from 'fast-shuffle';
 import randomItem from 'random-item';
 import * as R from 'ramda';
-import {eqLengths} from './utils.js';
+import {emptyIndex, eqLengths, getOpenableCount} from './utils.js';
 import defaultWordsSuite from './words/index.js';
 
 const shuffleWord = value => {
@@ -25,25 +25,6 @@ const getExtraCharForWord = word => {
 	return randomItem(availableChars);
 };
 
-const diffWithDuplicates = (a, b) => {
-	/* eslint-disable unicorn/no-array-reduce */
-	const result = [
-		...b.reduce(
-			(acc, v) => acc.set(v, (acc.get(v) || 0) - 1),
-			a.reduce((acc, v) => acc.set(v, (acc.get(v) || 0) + 1), new Map()),
-		),
-	].reduce(
-		(acc, [v, count]) => [
-			...acc,
-			Array.from({length: Math.abs(count)}).fill(v),
-		],
-		[],
-	);
-	/* eslint-enable unicorn/no-array-reduce */
-
-	return result;
-};
-
 const wordProp = R.lensProp('word');
 const wordsSuiteProp = R.lensProp('wordsSuite');
 const usedWordsProp = R.lensProp('usedWords');
@@ -61,13 +42,18 @@ const useWordStore = (set, get) => {
 	};
 };
 
-const getRemained = (chars, otherChars) => {
-	return diffWithDuplicates(chars, otherChars).join('');
+const updateSeveral = (indexes, values, source) => {
+	let result = R.clone(source);
+
+	R.addIndex(R.forEach)((element, i) => {
+		result = R.update(element, values[i], result);
+	}, indexes);
+
+	return result;
 };
 
 const useGameStore = (set, get) => {
 	return {
-		currentChar: '',
 		round: {
 			word: '',
 			usedWords: [],
@@ -91,7 +77,6 @@ const useGameStore = (set, get) => {
 			)[0];
 			const extraChar = getExtraCharForWord(currentRoundWord);
 			const shuffledWord = shuffleWord(`${currentRoundWord}${extraChar}`);
-
 			get().addToUsedWords(currentRoundWord);
 			return set(
 				R.over(
@@ -102,7 +87,8 @@ const useGameStore = (set, get) => {
 						isSubmitted: false,
 						isAnswerCorrect: false,
 						status: 'RUNNING',
-						chars: [],
+						currentChar: '',
+						chars: R.repeat('', currentRoundWord.length),
 						shuffledWord,
 						isFinished: false,
 						extraChar,
@@ -116,34 +102,21 @@ const useGameStore = (set, get) => {
 					round: {word, chars},
 				} = get();
 				const charLower = char.toLowerCase();
-				const charIncluded = getRemained([...word], chars).includes(charLower);
-				let answerIsCorrect = false;
-				let charOffset = 0;
-
-				if (charIncluded) {
-					if (chars.includes(charLower)) {
-						let currPos = word.indexOf(charLower, charOffset);
-						let occurenceCounter = R.count(R.equals(charLower), chars);
-
-						while (currPos !== -1 && occurenceCounter > 0) {
-							charOffset = currPos + 1;
-							currPos = word.indexOf(charLower, charOffset);
-							occurenceCounter--;
-						}
-					}
-
-					answerIsCorrect =
-						word.indexOf(charLower, charOffset) === chars.length;
-				}
+				const currIndex = chars.indexOf('');
+				const answerIsCorrect = word[currIndex] === charLower;
 
 				if (answerIsCorrect) {
 					return R.over(
 						R.lensProp('round'),
 						R.mergeLeft({
-							chars: R.append(charLower, state.round.chars),
+							chars: R.update(
+								emptyIndex(state.round.chars),
+								charLower,
+								state.round.chars,
+							),
 							isAnswerCorrect: true,
 							status:
-								chars.length === word.length - 1
+								R.reject(R.isEmpty, chars).length === word.length - 1
 									? 'FINISHED'
 									: state.round.status,
 						}),
@@ -153,15 +126,42 @@ const useGameStore = (set, get) => {
 
 				return R.set(R.lensPath(['round', 'isAnswerCorrect']), false, state);
 			}),
-		openCurrentChar() {
-			const tar = 'vfv';
-			console.log(`HHSJWSW ${get().round.status} - ${tar}`);
-			const result = set(state =>
-				setProp(R.lensPath(['round', 'status']), 'PAUSED', state),
-			);
-			return result;
+		openCurrentChar(count) {
+			return set(state => {
+				const {
+					round: {word},
+				} = get();
+				if (count === 0 || count > getOpenableCount(word)) {
+					return state;
+				}
+
+				const wordIndexes = R.range(0, word.length);
+				const randIndexes = [];
+				const takenIndexes = [];
+				while (randIndexes.length < count) {
+					const randomIndex = R.compose(
+						R.head,
+						shuffle,
+					)(R.without(takenIndexes, wordIndexes));
+					randIndexes.push(randomIndex);
+					takenIndexes.push(randomIndex);
+				}
+
+				return R.over(
+					R.lensProp('round'),
+					R.mergeLeft({
+						chars: updateSeveral(
+							randIndexes,
+							R.map(i => word[i], randIndexes),
+							state.round.chars,
+						), // R.update(R.head(randIndexes), R.nth(R.head(randIndexes), word), state.round.chars)// R.last(randIndexes),// insert(randIndexes[0], R.nth(randIndexes[0], word), state.round.chars),
+					}),
+					state,
+				);
+			});
 		},
-		setCurrentChar: char => set(setProp('currentChar', char)),
+		setCurrentChar: char =>
+			set(R.set(R.lensPath(['round', 'currentChar']), char)),
 		setStatus: message => set(setProp('status', message)),
 		setPaused: () => set(R.set(R.lensPath(['round', 'status']), 'PAUSED')),
 		setRunning: () => set(R.set(R.lensPath(['round', 'status']), 'RUNNING')),

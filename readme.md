@@ -42,6 +42,12 @@ Game round in process
 Game round is finished
 ![game-round-finished](media/guess-word-cli-demo-2.png)
 
+## Related
+
+[what-is-word-cli](https://github.com/akgondber/what-is-word-cli)
+[word-snatchers-cli](https://github.com/akgondber/word-snatchers-cli)
+[vowels-consonants-game-cli](https://github.com/akgondber/vowels-consonants-game-cli)4
+
 ## License
 
 MIT © [Rushan Alyautdinov](https://github.com/akgondber)

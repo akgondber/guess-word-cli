@@ -1,5 +1,5 @@
 import React, {useEffect} from 'react';
-import {Text, Box, useInput} from 'ink';
+import {Text, Box, useInput, useApp, Newline} from 'ink';
 import Color from 'ink-color-pipe';
 import Gradient from 'ink-gradient';
 import logSymbols from 'log-symbols';
@@ -7,18 +7,25 @@ import {nanoid} from 'nanoid';
 import open from 'open';
 import * as R from 'ramda';
 import useAppStore from './store.js';
-import {isEnglishWord} from './utils.js';
+import {
+	emptyIndex,
+	getOpenableNumbers,
+	hasFilled,
+	isEnglishWord,
+	isNumChar,
+} from './utils.js';
 
 export default function App({wordsSuite}) {
+	const {exit} = useApp();
 	const prepareRound = useAppStore(state => state.prepareRound);
 	const round = useAppStore(R.prop('round'));
 	const setDif = useAppStore(R.prop('setDif'));
 	const setPaused = useAppStore(R.prop('setPaused'));
 	const setRunning = useAppStore(R.prop('setRunning'));
-	const currentChar = useAppStore(R.prop('currentChar'));
 	const setCurrentChar = useAppStore(R.prop('setCurrentChar'));
 	const handleAnswer = useAppStore(R.prop('handleAnswer'));
 	const setWordsSuite = useAppStore(R.prop('setWordsSuite'));
+	const openCurrentChar = useAppStore(R.prop('openCurrentChar'));
 
 	const isRunning = () => round.status === 'RUNNING';
 	const isPaused = () => round.status === 'PAUSED';
@@ -28,6 +35,7 @@ export default function App({wordsSuite}) {
 	const {
 		word: roundWord,
 		chars,
+		currentChar,
 		extraChar,
 		isAnswerCorrect,
 		shuffledWord,
@@ -56,17 +64,34 @@ export default function App({wordsSuite}) {
 				prepareRound();
 			} else if (key.ctrl && input === 's') {
 				setDif();
+			} else if (isNumChar(input) && !hasFilled(chars)) {
+				openCurrentChar(Number(input));
 			} else if (isEnglishWord(input)) {
 				setCurrentChar(input);
 				handleAnswer(input);
 			}
 		} else if (isFinished()) {
-			if (input === 'n') {
-				prepareRound();
-			} else if (input === 'o') {
-				await open(
-					`https://dictionary.cambridge.org/dictionary/english/${roundWord}`,
-				);
+			switch (input) {
+				case 'n': {
+					prepareRound();
+
+					break;
+				}
+
+				case 'o': {
+					await open(
+						`https://dictionary.cambridge.org/dictionary/english/${roundWord}`,
+					);
+
+					break;
+				}
+
+				case 'q': {
+					exit();
+
+					break;
+				}
+				// No default
 			}
 		}
 	});
@@ -99,12 +124,20 @@ export default function App({wordsSuite}) {
 						</Text>
 					</Box>
 					{isFinished() && (
-						<Text>
-							<Text bold>o</Text>
+						<Box flexDirection="column">
 							<Text>
-								{' - to open the definition of the curent word in the browser'}
+								<Text bold>o</Text>
+								<Text>
+									{
+										' - to open the definition of the curent word in the browser'
+									}
+								</Text>
 							</Text>
-						</Text>
+							<Text>
+								<Text bold>q</Text>
+								<Text>{' - to quit'}</Text>
+							</Text>
+						</Box>
 					)}
 				</Box>
 			</Box>
@@ -196,15 +229,15 @@ export default function App({wordsSuite}) {
 									paddingX={1}
 									borderStyle="single"
 									borderColor={
-										i < chars.length
+										R.complement(R.isEmpty)(chars[i])
 											? 'green'
-											: i === chars.length
+											: i === emptyIndex(chars)
 											? 'yellow'
 											: ''
 									}
 								>
 									<Text>
-										{R.either(R.isEmpty, chars => i >= chars.length)(chars)
+										{R.either(R.all(R.isEmpty), chars => chars[i] === '')(chars)
 											? '?'
 											: chars[i].toUpperCase()}
 									</Text>
@@ -225,6 +258,14 @@ export default function App({wordsSuite}) {
 							(isAnswerCorrect ? logSymbols.success : logSymbols.error)}
 					</Text>
 				</Box>
+			)}
+			{isRunning() && !hasFilled(chars) && (
+				<Text>
+					<Newline />
+					<Text>Type </Text>
+					<Text bold>n</Text> (n = {getOpenableNumbers(roundWord)}) -{' '}
+					<Text>to open n random chars when there is no any opened chars</Text>
+				</Text>
 			)}
 		</Box>
 	);
