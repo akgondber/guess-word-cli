@@ -44,9 +44,9 @@ Game round is finished
 
 ## Related
 
-[what-is-word-cli](https://github.com/akgondber/what-is-word-cli)
-[word-snatchers-cli](https://github.com/akgondber/word-snatchers-cli)
-[vowels-consonants-game-cli](https://github.com/akgondber/vowels-consonants-game-cli)
+- [what-is-word-cli](https://github.com/akgondber/what-is-word-cli)
+- [word-snatchers-cli](https://github.com/akgondber/word-snatchers-cli)
+- [vowels-consonants-game-cli](https://github.com/akgondber/vowels-consonants-game-cli)it
 
 ## License
 
